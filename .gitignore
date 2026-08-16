@@ -1,0 +1,60 @@
+# =========================
+# Python & FastAPI
+# =========================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# =========================
+# Virtual Environments
+# =========================
+.venv/
+venv/
+env/
+ENV/
+
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.local
+.env.*.local
+
+# =========================
+# IDEs & Editors
+# =========================
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm / IntelliJ
+.idea/
+
+# =========================
+# Testing & Coverage
+# =========================
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# =========================
+# OS Generated Files
+# =========================
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+
+# macOS (just in case you collaborate)
+.DS_Store
+.AppleDouble
+.LSOverride
