@@ -1,10 +1,7 @@
-name: Thank You for Pushing
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
 
@@ -36,6 +33,34 @@ jobs:
         env:
           MONGODB_URL: ${{ secrets.mongo_server }}
         run: python -m pytest app/tests/test_notes.py -q -p no:warnings
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: run-test # CRITICAL: This ensures Docker only builds if tests pass
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        
+      # Logs into Docker Hub using secrets
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          
+      # Sets up Docker's build engine
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      # Builds the image using your Dockerfile and pushes it
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: . # Runs from the root directory so "COPY backend/..." works perfectly
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/philosostream-backend:latest
 
   say-thanks:
     runs-on: ubuntu-latest
