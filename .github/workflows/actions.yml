@@ -61,7 +61,18 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/philosostream-backend:latest
+          
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1 # Change if your cluster is in a different region
 
+      - name: Force ECS to Deploy New Image
+        run: |
+          aws ecs update-service --cluster philosostream-cluster --service philosostream-service --force-new-deployment
+     
   say-thanks:
     runs-on: ubuntu-latest
     needs: run-test
