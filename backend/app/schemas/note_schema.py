@@ -12,7 +12,7 @@ class NoteCreate(BaseModel):
 class NoteResponse(BaseModel):
     # Maps MongoDB's internal "_id" to a clean "id" for your frontend
     id: Optional[str] = Field(alias="_id", default=None)
-    username: str
+    username: Optional[str] = None
     content: str
     time: datetime
     
