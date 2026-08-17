@@ -71,7 +71,7 @@ jobs:
 
       - name: Force ECS to Deploy New Image
         run: |
-          aws ecs update-service --cluster philosostream-cluster --service philosostream-service --force-new-deployment
+          aws ecs update-service --cluster philosostream-cluster --service philosostream --force-new-deployment
      
   say-thanks:
     runs-on: ubuntu-latest
