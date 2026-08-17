@@ -1,6 +1,6 @@
 from typing import Optional
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 # 1. Schema for receiving data when a user creates a new note
 class NoteCreate(BaseModel):
@@ -16,6 +16,5 @@ class NoteResponse(BaseModel):
     content: str
     time: datetime
     
-    class Config:
-        # Allows Pydantic to populate the model using either "id" or "_id"
-        populate_by_name = True
+    # Modern Pydantic V2 configuration replacing `class Config:`
+    model_config = ConfigDict(populate_by_name=True)

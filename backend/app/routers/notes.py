@@ -1,24 +1,42 @@
 from typing import List
 
 from fastapi import HTTPException, status, APIRouter,Depends, Query
+from fastapi.encoders import jsonable_encoder
+
 from bson import ObjectId
 from ..core import oauth2
 
 from ..schemas.note_schema import NoteResponse, NoteCreate
 from ..schemas import oauth2_schema 
+import json
 
-
+from .. core.database import REDIS_URL,redis_client
+from .. utils import searialize
 
 router = APIRouter(
     prefix="/notes",
     tags=['Posts']
 )
 
+CACHE_TTL_SECONDS = 60  # Cache duration (1 minute)
+
 @router.get("/", response_model=List[NoteResponse], response_model_by_alias=False)
 async def get_notes(
     limit: int = Query(10, ge=1, le=100), # Default 10, min 1, max 100
     skip: int = Query(0, ge=0)            # Default 0, min 0
 ):
+    cache_key = f"notes:limit_{limit}:skip_{skip}"
+
+    # 1. Try to fetch from Redis (with graceful fallback if Redis encounters an issue)
+    try:
+        cached_data = await redis_client.get(cache_key)
+        if cached_data:
+            return json.loads(cached_data)
+    except Exception as e:
+        # If cache read fails, log and fallback to database without crashing
+        print(f"Redis read error: {e}")
+
+    # 2. Cache Miss: Connect to MongoDB
     from ..core.database import client
 
     if client is None:
@@ -30,12 +48,25 @@ async def get_notes(
     db = client.philosostream
     collection = db.notes
 
-    # Convert the MongoDB '_id' to a string because ObjectId is not JSON serializable
-    # Pagination enabled
+    # 3. Query MongoDB with pagination
     notes_cursor = collection.find({}).skip(skip).limit(limit)
-    notes = await notes_cursor.to_list(length=100)
+    notes = await notes_cursor.to_list(length=limit)
+
     for note in notes:
         note["_id"] = str(note["_id"])
+
+    # 4. Store the result in Redis with a TTL
+    try:
+        # jsonable_encoder handles datetime objects and other BSON types safely
+        serialized_notes = jsonable_encoder(notes)
+        await redis_client.setex(
+            cache_key,
+            CACHE_TTL_SECONDS,
+            json.dumps(serialized_notes)
+        )
+    except Exception as e:
+        # If cache write fails, the client still gets the database response
+        print(f"Redis write error: {e}")
 
     return notes
 
