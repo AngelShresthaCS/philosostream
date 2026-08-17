@@ -1,0 +1,20 @@
+name: Thank You for Pushing
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  say-thanks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Thank the contributor
+        run: echo "Thank you for pushing!"
