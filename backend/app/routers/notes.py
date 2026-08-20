@@ -13,6 +13,11 @@ import json
 from .. core.database import REDIS_URL,redis_client
 from .. utils import searialize
 
+import logging
+
+# Set up a basic logger to format your output cleanly
+logger = logging.getLogger("uvicorn.error")
+
 router = APIRouter(
     prefix="/notes",
     tags=['Posts']
@@ -28,14 +33,24 @@ async def get_notes(
     cache_key = f"notes:limit_{limit}:skip_{skip}"
 
     # 1. Try to fetch from Redis (with graceful fallback if Redis encounters an issue)
+   
+        
     try:
         cached_data = await redis_client.get(cache_key)
         if cached_data:
+            # CACHE HIT
+            logger.info("✅ CACHE HIT! Returning data directly from ElastiCache.")
+            
+            # Optional: Print the first 100 characters of the JSON to prove it's the right data
+            logger.info(f"📦 Cached Data Preview: {cached_data[:100]}...") 
+            
             return json.loads(cached_data)
     except Exception as e:
-        # If cache read fails, log and fallback to database without crashing
+        logger.error(f"⚠️ Redis read error: {e}")
         print(f"Redis read error: {e}")
 
+    # CACHE MISS
+    logger.warning("❌ CACHE MISS! Data not in ElastiCache. Reaching out to MongoDB Atlas...")
     # 2. Cache Miss: Connect to MongoDB
     from ..core.database import client
 
