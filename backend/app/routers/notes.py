@@ -40,10 +40,6 @@ async def get_notes(
         if cached_data:
             # CACHE HIT
             logger.info("✅ CACHE HIT! Returning data directly from ElastiCache.")
-            
-            # Optional: Print the first 100 characters of the JSON to prove it's the right data
-            logger.info(f"📦 Cached Data Preview: {cached_data[:100]}...") 
-            
             return json.loads(cached_data)
     except Exception as e:
         logger.error(f"⚠️ Redis read error: {e}")
